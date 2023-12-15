@@ -53,8 +53,8 @@ public class PlaceOrderFormController {
     public Label lblTotal;
     private String orderId;
     CustomerDAOImpl customerDAO=new CustomerDAOImpl();
-    ItemDAOImpl item=new ItemDAOImpl();
-    OrderImpl order=new OrderImpl();
+    private ItemDAOImpl item=new ItemDAOImpl();
+    private OrderImpl order=new OrderImpl();
 
     public void initialize() throws SQLException, ClassNotFoundException {
 
