@@ -1,6 +1,7 @@
 package com.example.layeredarchitecture.controller;
 
 import com.example.layeredarchitecture.dao.CustomerDAOImpl;
+import com.example.layeredarchitecture.dao.CustomerDao;
 import com.example.layeredarchitecture.db.DBConnection;
 import com.example.layeredarchitecture.model.CustomerDTO;
 import com.example.layeredarchitecture.view.tdm.CustomerTM;
@@ -37,7 +38,7 @@ public class ManageCustomersFormController {
     public TextField txtCustomerAddress;
     public TableView<CustomerTM> tblCustomers;
     public JFXButton btnAddNewCustomer;
-
+    CustomerDao customerDAO = new CustomerDAOImpl();
     public void initialize() throws SQLException, ClassNotFoundException {
         tblCustomers.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("id"));
         tblCustomers.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -68,7 +69,7 @@ public class ManageCustomersFormController {
     private void loadAllCustomers() throws SQLException, ClassNotFoundException {
         tblCustomers.getItems().clear();
         try {
-            CustomerDAOImpl customerDAO = new CustomerDAOImpl();
+
         ArrayList<CustomerDTO> allCustomers = customerDAO.getAllCustomers();
         for(CustomerDTO dto:allCustomers){
             tblCustomers.getItems().add(new CustomerTM(dto.getId(), dto.getName(),dto.getAddress()));
@@ -107,7 +108,7 @@ public class ManageCustomersFormController {
         Platform.runLater(() -> primaryStage.sizeToScene());
     }
 
-    public void btnAddNew_OnAction(ActionEvent actionEvent) {
+    public void btnAddNew_OnAction(ActionEvent actionEvent)  {
         txtCustomerId.setDisable(false);
         txtCustomerName.setDisable(false);
         txtCustomerAddress.setDisable(false);
@@ -143,14 +144,10 @@ public class ManageCustomersFormController {
                 if (existCustomer(id)) {
                     new Alert(Alert.AlertType.ERROR, id + " already exists").show();
                 }
-                Connection connection = DBConnection.getDbConnection().getConnection();
-                PreparedStatement pstm = connection.prepareStatement("INSERT INTO Customer (id,name, address) VALUES (?,?,?)");
-                pstm.setString(1, id);
-                pstm.setString(2, name);
-                pstm.setString(3, address);
-                pstm.executeUpdate();
 
-                tblCustomers.getItems().add(new CustomerTM(id, name, address));
+                boolean saved = customerDAO.saveCustomer(id, name, address);
+                if (saved){
+                tblCustomers.getItems().add(new CustomerTM(id, name, address));}
             } catch (SQLException e) {
                 new Alert(Alert.AlertType.ERROR, "Failed to save the customer " + e.getMessage()).show();
             } catch (ClassNotFoundException e) {
@@ -164,12 +161,7 @@ public class ManageCustomersFormController {
                 if (!existCustomer(id)) {
                     new Alert(Alert.AlertType.ERROR, "There is no such customer associated with the id " + id).show();
                 }
-                Connection connection = DBConnection.getDbConnection().getConnection();
-                PreparedStatement pstm = connection.prepareStatement("UPDATE Customer SET name=?, address=? WHERE id=?");
-                pstm.setString(1, name);
-                pstm.setString(2, address);
-                pstm.setString(3, id);
-                pstm.executeUpdate();
+                boolean updated = customerDAO.updateCustomer(id, name, address);
             } catch (SQLException e) {
                 new Alert(Alert.AlertType.ERROR, "Failed to update the customer " + id + e.getMessage()).show();
             } catch (ClassNotFoundException e) {
@@ -187,10 +179,9 @@ public class ManageCustomersFormController {
 
 
     boolean existCustomer(String id) throws SQLException, ClassNotFoundException {
-        Connection connection = DBConnection.getDbConnection().getConnection();
-        PreparedStatement pstm = connection.prepareStatement("SELECT id FROM Customer WHERE id=?");
-        pstm.setString(1, id);
-        return pstm.executeQuery().next();
+       return customerDAO.existCustomer(id);
+
+
     }
 
 
@@ -201,11 +192,7 @@ public class ManageCustomersFormController {
             if (!existCustomer(id)) {
                 new Alert(Alert.AlertType.ERROR, "There is no such customer associated with the id " + id).show();
             }
-            Connection connection = DBConnection.getDbConnection().getConnection();
-            PreparedStatement pstm = connection.prepareStatement("DELETE FROM Customer WHERE id=?");
-            pstm.setString(1, id);
-            pstm.executeUpdate();
-
+            customerDAO.deleteCustomer(id);
             tblCustomers.getItems().remove(tblCustomers.getSelectionModel().getSelectedItem());
             tblCustomers.getSelectionModel().clearSelection();
             initUI();
@@ -217,23 +204,18 @@ public class ManageCustomersFormController {
         }
     }
 
-    private String generateNewId() {
-        try {
-            Connection connection = DBConnection.getDbConnection().getConnection();
-            ResultSet rst = connection.createStatement().executeQuery("SELECT id FROM Customer ORDER BY id DESC LIMIT 1;");
-            if (rst.next()) {
-                String id = rst.getString("id");
-                int newCustomerId = Integer.parseInt(id.replace("C00-", "")) + 1;
-                return String.format("C00-%03d", newCustomerId);
-            } else {
-                return "C00-001";
-            }
-        } catch (SQLException e) {
-            new Alert(Alert.AlertType.ERROR, "Failed to generate a new id " + e.getMessage()).show();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
+    private String generateNewId()  {
+       if(!tblCustomers.getItems().isEmpty()) {
+           String customerId = null;
+           try {
+               customerId = customerDAO.generateNextCustomerId();
+           } catch (SQLException e) {
+               throw new RuntimeException(e);
+           } catch (ClassNotFoundException e) {
+               throw new RuntimeException(e);
+           }
+           return customerId;
+       }
 
         if (tblCustomers.getItems().isEmpty()) {
             return "C00-001";
