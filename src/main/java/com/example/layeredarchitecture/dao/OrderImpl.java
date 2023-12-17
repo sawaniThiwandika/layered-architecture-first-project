@@ -8,7 +8,8 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
 
-public class OrderImpl {
+public class OrderImpl implements OrderDao{
+    @Override
     public String generateNewOrderId() throws SQLException, ClassNotFoundException {
         Connection connection = DBConnection.getDbConnection().getConnection();
         Statement stm = connection.createStatement();
@@ -16,6 +17,7 @@ public class OrderImpl {
 
         return rst.next() ? String.format("OID-%03d", (Integer.parseInt(rst.getString("oid").replace("OID-", "")) + 1)) : "OID-001";
     }
+    @Override
     public boolean placeOrder(String orderId, LocalDate orderDate, String customerId, List<OrderDetailDTO> orderDetails){
         Connection connection = null;
         try {

@@ -80,7 +80,8 @@ public class ItemDAOImpl implements ItemDao{
         }
         return codes;
     }
-    @Override
+
+
     public ItemDTO findItem(String code) {
         try {
             Connection connection = DBConnection.getDbConnection().getConnection();
@@ -95,5 +96,15 @@ public class ItemDAOImpl implements ItemDao{
             e.printStackTrace();
         }
         return null;
+    }
+    @Override
+    public ItemDTO find(String newItemCode) throws SQLException, ClassNotFoundException {
+        Connection connection = DBConnection.getDbConnection().getConnection();
+        PreparedStatement pstm = connection.prepareStatement("SELECT * FROM Item WHERE code=?");
+        pstm.setString(1, newItemCode + "");
+        ResultSet rst = pstm.executeQuery();
+        rst.next();
+        ItemDTO item = new ItemDTO(newItemCode + "", rst.getString("description"), rst.getBigDecimal("unitPrice"), rst.getInt("qtyOnHand"));
+        return item;
     }
 }
