@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public class OrderImpl implements OrderDao{
+    OrderDetailDao orderDetail=new OrderDetailDaoImpl();
     @Override
     public String generateNewOrderId() throws SQLException, ClassNotFoundException {
         Connection connection = DBConnection.getDbConnection().getConnection();
@@ -30,7 +31,8 @@ public class OrderImpl implements OrderDao{
             }
 
             connection.setAutoCommit(false);
-            stm = connection.prepareStatement("INSERT INTO `Orders` (oid, date, customerID) VALUES (?,?,?)");
+            boolean saveORDER = saveORDER(stm, orderId, orderDate, customerId);
+           /* stm = connection.prepareStatement("INSERT INTO `Orders` (oid, date, customerID) VALUES (?,?,?)");
             stm.setString(1, orderId);
             stm.setDate(2, Date.valueOf(orderDate));
             stm.setString(3, customerId);
@@ -39,7 +41,12 @@ public class OrderImpl implements OrderDao{
                 connection.rollback();
                 connection.setAutoCommit(true);
                 return false;
+            }*/
+            if(saveORDER){
+                orderDetail.saveOrderDetail(orderId,orderDetails);
+
             }
+            /*
 
             stm = connection.prepareStatement("INSERT INTO OrderDetails (oid, itemCode, unitPrice, qty) VALUES (?,?,?,?)");
 
@@ -72,6 +79,7 @@ public class OrderImpl implements OrderDao{
                     return false;
                 }
             }
+            */
 
             connection.commit();
             connection.setAutoCommit(true);
@@ -84,6 +92,17 @@ public class OrderImpl implements OrderDao{
         }
         return false;
     }
+
+    public boolean saveORDER(PreparedStatement stm, String orderId, LocalDate orderDate, String customerId) throws SQLException, ClassNotFoundException {
+       Connection connection = DBConnection.getDbConnection().getConnection();
+        stm = connection.prepareStatement("INSERT INTO `Orders` (oid, date, customerID) VALUES (?,?,?)");
+        stm.setString(1, orderId);
+        stm.setDate(2, Date.valueOf(orderDate));
+        stm.setString(3, customerId);
+
+      return stm.executeUpdate()>0;
+    }
+
 
 
 

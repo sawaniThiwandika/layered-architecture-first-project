@@ -89,7 +89,8 @@ public class ItemDAOImpl implements ItemDao{
             pstm.setString(1, code);
             ResultSet rst = pstm.executeQuery();
             rst.next();
-            return new ItemDTO(code, rst.getString("description"), rst.getBigDecimal("unitPrice"), rst.getInt("qtyOnHand"));
+            return new ItemDTO(code, rst.getString("description"), rst.getBigDecimal("unitPrice"),
+                    rst.getInt("qtyOnHand"));
         } catch (SQLException e) {
             throw new RuntimeException("Failed to find the Item " + code, e);
         } catch (ClassNotFoundException e) {
@@ -104,7 +105,8 @@ public class ItemDAOImpl implements ItemDao{
         pstm.setString(1, newItemCode + "");
         ResultSet rst = pstm.executeQuery();
         rst.next();
-        ItemDTO item = new ItemDTO(newItemCode + "", rst.getString("description"), rst.getBigDecimal("unitPrice"), rst.getInt("qtyOnHand"));
+        ItemDTO item = new ItemDTO(newItemCode + "", rst.getString("description"), rst.getBigDecimal
+                ("unitPrice"), rst.getInt("qtyOnHand"));
         return item;
     }
 }
