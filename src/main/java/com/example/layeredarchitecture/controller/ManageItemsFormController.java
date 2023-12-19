@@ -72,7 +72,7 @@ public class ManageItemsFormController {
     private void loadAllItems() {
         tblItems.getItems().clear();
         try {
-            ArrayList<ItemDTO> allItems = item.getAllItems();
+            ArrayList<ItemDTO> allItems = item.getAll();
            for(ItemDTO dto:allItems) {
                 tblItems.getItems().add(new ItemTM(dto.getCode(),dto.getDescription(),dto.getUnitPrice(),dto.getQtyOnHand()));
             }
@@ -128,10 +128,10 @@ public class ManageItemsFormController {
         /*Delete Item*/
         String code = tblItems.getSelectionModel().getSelectedItem().getCode();
         try {
-            if (!item.existItem(code)) {
+            if (!item.exist(code)) {
                 new Alert(Alert.AlertType.ERROR, "There is no such item associated with the id " + code).show();
             }
-            boolean deleted = item.deleteItem(code);
+            boolean deleted = item.delete(code);
           /*  Connection connection = DBConnection.getDbConnection().getConnection();
             PreparedStatement pstm = connection.prepareStatement("DELETE FROM Item WHERE code=?");
             pstm.setString(1, code);
@@ -172,10 +172,11 @@ public class ManageItemsFormController {
 
         if (btnSave.getText().equalsIgnoreCase("save")) {
             try {
-                if (item.existItem(code)) {
+                if (item.exist(code)) {
                     new Alert(Alert.AlertType.ERROR, code + " already exists").show();
                 }
-                boolean saved = item.saveItem(code, description, unitPrice, qtyOnHand);
+                ItemDTO dto=new ItemDTO(code, description, unitPrice, qtyOnHand);
+                boolean saved = item.save(dto);
                 //Save Item
                 /*Connection connection = DBConnection.getDbConnection().getConnection();
                 PreparedStatement pstm = connection.prepareStatement("INSERT INTO Item (code, description, unitPrice, qtyOnHand) VALUES (?,?,?,?)");
@@ -195,7 +196,7 @@ public class ManageItemsFormController {
         } else {
             try {
 
-                if (!item.existItem(code)) {
+                if (!item.exist(code)) {
                     new Alert(Alert.AlertType.ERROR, "There is no such item associated with the id " + code).show();
                 }
                 /*Update Item*/
@@ -207,7 +208,7 @@ public class ManageItemsFormController {
                 pstm.setString(4, code);
                 pstm.executeUpdate();*/
                 ItemDTO itemDTO = new ItemDTO(code, description, unitPrice, qtyOnHand);
-                boolean updated = item.updateItem(itemDTO);
+                boolean updated = item.update(itemDTO);
                 if(updated) {
                     ItemTM selectedItem = tblItems.getSelectionModel().getSelectedItem();
                     selectedItem.setDescription(description);
@@ -239,7 +240,7 @@ public class ManageItemsFormController {
             }
             */
 
-            return item.generateNewItemId();
+            return item.generateNewId();
         } catch (SQLException e) {
             new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
         } catch (ClassNotFoundException e) {

@@ -4,6 +4,7 @@ import com.example.layeredarchitecture.dao.*;
 import com.example.layeredarchitecture.db.DBConnection;
 import com.example.layeredarchitecture.model.CustomerDTO;
 import com.example.layeredarchitecture.model.ItemDTO;
+import com.example.layeredarchitecture.model.OrderDTO;
 import com.example.layeredarchitecture.model.OrderDetailDTO;
 import com.example.layeredarchitecture.view.tdm.OrderDetailTM;
 import com.jfoenix.controls.JFXButton;
@@ -53,7 +54,7 @@ public class PlaceOrderFormController {
     CustomerDAOImpl customerDAO=new CustomerDAOImpl();
     private ItemDao item=new ItemDAOImpl();
     private OrderDao order=new OrderImpl();
-
+    OrderDetailDao orderDetail=new OrderDetailDaoImpl();
     public void initialize() {
 
         tblOrderDetails.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("code"));
@@ -104,7 +105,7 @@ public class PlaceOrderFormController {
 //                            "There is no such customer associated with the id " + id
                             new Alert(Alert.AlertType.ERROR, "There is no such customer associated with the id " + newValue + "").show();
                         }
-                        CustomerDTO customerDTO = customerDAO.findCustomer(newValue);
+                        CustomerDTO customerDTO = customerDAO.find(newValue);
 
                        /* PreparedStatement pstm = connection.prepareStatement("SELECT * FROM Customer WHERE id=?");
                         pstm.setString(1, newValue + "");
@@ -191,18 +192,18 @@ public class PlaceOrderFormController {
 
     private boolean existItem(String code) throws SQLException, ClassNotFoundException {
 
-        return item.existItem(code);
+        return item.exist(code);
     }
 
     boolean existCustomer(String id) throws SQLException, ClassNotFoundException {
 
-        return customerDAO.existCustomer(id);
+        return customerDAO.exist(id);
 
     }
 
     public String generateNewOrderId() {
         try {
-            return order.generateNewOrderId();
+            return order.generateNewId();
         } catch (SQLException e) {
             new Alert(Alert.AlertType.ERROR, "Failed to generate a new order id").show();
         } catch (ClassNotFoundException e) {
@@ -333,10 +334,107 @@ public class PlaceOrderFormController {
 
     public boolean saveOrder(String orderId, LocalDate orderDate, String customerId, List<OrderDetailDTO> orderDetails) {
         /*Transaction*/
-        boolean placed = order.placeOrder(orderId, orderDate, customerId, orderDetails);
+        boolean placed = placeOrder(orderId, orderDate, customerId, orderDetails);
         return placed;
 
     }
+
+    public boolean placeOrder(String orderId, LocalDate orderDate, String customerId, List<OrderDetailDTO> orderDetails) {
+        Connection connection = null;
+        try {
+
+            if (!order.exist(orderId)){
+                return true;
+               // return false;
+              // System.out.println("Already existed");
+            }
+            System.out.println("saveeeeee");
+           /* connection = DBConnection.getDbConnection().getConnection();
+            PreparedStatement stm = connection.prepareStatement("SELECT oid FROM `Orders` WHERE oid=?");
+            stm.setString(1, orderId);
+            //if order id already exist
+            if (stm.executeQuery().next()) {
+
+            }*/
+            connection = DBConnection.getDbConnection().getConnection();
+
+            connection.setAutoCommit(false);
+            OrderDTO dto=new OrderDTO(orderId,orderDate,customerId);
+
+            boolean saveORDER = order.save(dto );
+           /* stm = connection.prepareStatement("INSERT INTO `Orders` (oid, date, customerID) VALUES (?,?,?)");
+            stm.setString(1, orderId);
+            stm.setDate(2, Date.valueOf(orderDate));
+            stm.setString(3, customerId);
+
+            if (stm.executeUpdate() != 1) {
+                connection.rollback();
+                connection.setAutoCommit(true);
+                return false;
+            }*/
+            if(!saveORDER){
+                connection.rollback();
+                connection.setAutoCommit(true);
+                return false;
+
+            }
+            System.out.println("save order");
+            boolean saveOrderDetail = orderDetail.saveOrderDetail(orderId, orderDetails);
+            if (!saveOrderDetail){
+                connection.rollback();
+                connection.setAutoCommit(true);
+                return false;
+            }
+            System.out.println("save order detail");
+
+            /*
+
+            stm = connection.prepareStatement("INSERT INTO OrderDetails (oid, itemCode, unitPrice, qty) VALUES (?,?,?,?)");
+
+            for (OrderDetailDTO detail : orderDetails) {
+                stm.setString(1, orderId);
+                stm.setString(2, detail.getItemCode());
+                stm.setBigDecimal(3, detail.getUnitPrice());
+                stm.setInt(4, detail.getQty());
+
+                if (stm.executeUpdate() != 1) {
+                    connection.rollback();
+                    connection.setAutoCommit(true);
+                    return false;
+                }
+
+//                //Search & Update Item
+                ItemDAOImpl itemDAO = new ItemDAOImpl();
+                ItemDTO item = itemDAO.findItem(detail.getItemCode());
+                item.setQtyOnHand(item.getQtyOnHand() - detail.getQty());
+
+                PreparedStatement pstm = connection.prepareStatement("UPDATE Item SET description=?, unitPrice=?, qtyOnHand=? WHERE code=?");
+                pstm.setString(1, item.getDescription());
+                pstm.setBigDecimal(2, item.getUnitPrice());
+                pstm.setInt(3, item.getQtyOnHand());
+                pstm.setString(4, item.getCode());
+
+                if (!(pstm.executeUpdate() > 0)) {
+                    connection.rollback();
+                    connection.setAutoCommit(true);
+                    return false;
+                }
+            }
+            */
+
+            connection.commit();
+            connection.setAutoCommit(true);
+            return true;
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
 
 
 
