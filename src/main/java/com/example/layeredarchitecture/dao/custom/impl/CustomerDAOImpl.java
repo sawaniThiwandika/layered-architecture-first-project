@@ -1,11 +1,13 @@
-package com.example.layeredarchitecture.dao;
+package com.example.layeredarchitecture.dao.custom.impl;
 
+import com.example.layeredarchitecture.dao.SQLUtil;
+import com.example.layeredarchitecture.dao.custom.CustomerDao;
 import com.example.layeredarchitecture.model.CustomerDTO;
 
 import java.sql.*;
 import java.util.ArrayList;
 
-public class CustomerDAOImpl implements CustomerDao{
+public class CustomerDAOImpl implements CustomerDao {
     @Override
     public ArrayList<CustomerDTO> getAll() throws SQLException, ClassNotFoundException {
         String sql="SELECT * FROM Customer";

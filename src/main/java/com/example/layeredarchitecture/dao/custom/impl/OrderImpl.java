@@ -1,15 +1,14 @@
-package com.example.layeredarchitecture.dao;
+package com.example.layeredarchitecture.dao.custom.impl;
 
-import com.example.layeredarchitecture.db.DBConnection;
+import com.example.layeredarchitecture.dao.SQLUtil;
+import com.example.layeredarchitecture.dao.custom.OrderDao;
+import com.example.layeredarchitecture.dao.custom.OrderDetailDao;
 import com.example.layeredarchitecture.model.OrderDTO;
-import com.example.layeredarchitecture.model.OrderDetailDTO;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List;
 
-public class OrderImpl implements OrderDao{
+public class OrderImpl implements OrderDao {
     OrderDetailDao orderDetail=new OrderDetailDaoImpl();
     @Override
     public String generateNewId() throws SQLException, ClassNotFoundException {

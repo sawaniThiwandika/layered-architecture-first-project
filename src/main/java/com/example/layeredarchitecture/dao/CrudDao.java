@@ -6,7 +6,7 @@ import com.example.layeredarchitecture.model.ItemDTO;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-public interface CrudDao <T> {
+public interface CrudDao <T> extends SuperDao{
     ArrayList<T> getAll() throws SQLException, ClassNotFoundException;
     boolean save(T dto) throws SQLException, ClassNotFoundException;
     boolean update(T dto) throws SQLException, ClassNotFoundException;

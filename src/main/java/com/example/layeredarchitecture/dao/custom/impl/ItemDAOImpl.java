@@ -1,13 +1,13 @@
-package com.example.layeredarchitecture.dao;
+package com.example.layeredarchitecture.dao.custom.impl;
 
-import com.example.layeredarchitecture.db.DBConnection;
+import com.example.layeredarchitecture.dao.SQLUtil;
+import com.example.layeredarchitecture.dao.custom.ItemDao;
 import com.example.layeredarchitecture.model.ItemDTO;
 
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 
-public class ItemDAOImpl implements ItemDao{
+public class ItemDAOImpl implements ItemDao {
     @Override
     public ArrayList<ItemDTO> getAll() throws SQLException, ClassNotFoundException {
         ArrayList<ItemDTO> itemDTOS = new ArrayList<>();

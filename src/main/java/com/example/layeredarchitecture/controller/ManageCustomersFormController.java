@@ -1,8 +1,9 @@
 package com.example.layeredarchitecture.controller;
 
-import com.example.layeredarchitecture.dao.CustomerDAOImpl;
-import com.example.layeredarchitecture.dao.CustomerDao;
-import com.example.layeredarchitecture.db.DBConnection;
+import com.example.layeredarchitecture.bo.custom.BoFactory;
+import com.example.layeredarchitecture.bo.custom.impl.CustomerBoImpl;
+import com.example.layeredarchitecture.dao.custom.impl.CustomerDAOImpl;
+import com.example.layeredarchitecture.dao.custom.CustomerDao;
 import com.example.layeredarchitecture.model.CustomerDTO;
 import com.example.layeredarchitecture.view.tdm.CustomerTM;
 import com.jfoenix.controls.JFXButton;
@@ -38,7 +39,8 @@ public class ManageCustomersFormController {
     public TextField txtCustomerAddress;
     public TableView<CustomerTM> tblCustomers;
     public JFXButton btnAddNewCustomer;
-    private CustomerDao customerDAO = new CustomerDAOImpl();
+
+    CustomerBoImpl customerBo= (CustomerBoImpl) BoFactory.getBOFactory().getBo(BoFactory.BOTypes.CUSTOMER);
     public void initialize() throws SQLException, ClassNotFoundException {
         tblCustomers.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("id"));
         tblCustomers.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -70,7 +72,7 @@ public class ManageCustomersFormController {
         tblCustomers.getItems().clear();
         try {
 
-        ArrayList<CustomerDTO> allCustomers = customerDAO.getAll();
+        ArrayList<CustomerDTO> allCustomers = customerBo.getAllCustomers();
         for(CustomerDTO dto:allCustomers){
             tblCustomers.getItems().add(new CustomerTM(dto.getId(), dto.getName(),dto.getAddress()));
 
@@ -146,7 +148,7 @@ public class ManageCustomersFormController {
                 }
                 CustomerDTO dto=new CustomerDTO(id,name,address);
 
-                boolean saved = customerDAO.save(dto);
+                boolean saved = customerBo.saveCustomer(dto);
                 if (saved){
                 tblCustomers.getItems().add(new CustomerTM(id, name, address));}
             } catch (SQLException e) {
@@ -163,7 +165,7 @@ public class ManageCustomersFormController {
                     new Alert(Alert.AlertType.ERROR, "There is no such customer associated with the id " + id).show();
                 }
                 CustomerDTO dto=new CustomerDTO(id,name,address);
-                boolean updated = customerDAO.update(dto);
+                boolean updated = customerBo.updateCustomer(dto);
             } catch (SQLException e) {
                 new Alert(Alert.AlertType.ERROR, "Failed to update the customer " + id + e.getMessage()).show();
             } catch (ClassNotFoundException e) {
@@ -181,9 +183,7 @@ public class ManageCustomersFormController {
 
 
     boolean existCustomer(String id) throws SQLException, ClassNotFoundException {
-       return customerDAO.exist(id);
-
-
+       return customerBo.existCustomer(id);
     }
 
 
@@ -194,7 +194,7 @@ public class ManageCustomersFormController {
             if (!existCustomer(id)) {
                 new Alert(Alert.AlertType.ERROR, "There is no such customer associated with the id " + id).show();
             }
-            customerDAO.delete(id);
+            customerBo.deleteCustomer(id);
             tblCustomers.getItems().remove(tblCustomers.getSelectionModel().getSelectedItem());
             tblCustomers.getSelectionModel().clearSelection();
             initUI();
@@ -210,7 +210,8 @@ public class ManageCustomersFormController {
        if(!tblCustomers.getItems().isEmpty()) {
            String customerId = null;
            try {
-               customerId = customerDAO.generateNewId();
+
+               customerId = customerBo.generateCustomerId();
            } catch (SQLException e) {
                throw new RuntimeException(e);
            } catch (ClassNotFoundException e) {

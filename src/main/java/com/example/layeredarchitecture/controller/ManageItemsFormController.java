@@ -1,8 +1,10 @@
 package com.example.layeredarchitecture.controller;
 
-import com.example.layeredarchitecture.dao.ItemDAOImpl;
-import com.example.layeredarchitecture.dao.ItemDao;
-import com.example.layeredarchitecture.db.DBConnection;
+import com.example.layeredarchitecture.bo.custom.BoFactory;
+import com.example.layeredarchitecture.bo.custom.ItemBo;
+import com.example.layeredarchitecture.bo.custom.impl.ItemBoImpl;
+import com.example.layeredarchitecture.dao.custom.impl.ItemDAOImpl;
+import com.example.layeredarchitecture.dao.custom.ItemDao;
 import com.example.layeredarchitecture.model.ItemDTO;
 import com.example.layeredarchitecture.view.tdm.ItemTM;
 import com.jfoenix.controls.JFXButton;
@@ -37,7 +39,8 @@ public class ManageItemsFormController {
     public TableView<ItemTM> tblItems;
     public TextField txtUnitPrice;
     public JFXButton btnAddNewItem;
-     private ItemDao item=new ItemDAOImpl();
+
+     ItemBo itemBo= (ItemBo) BoFactory.getBOFactory().getBo(BoFactory.BOTypes.ITEM);
 
     public void initialize() {
         tblItems.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("code"));
@@ -72,7 +75,7 @@ public class ManageItemsFormController {
     private void loadAllItems() {
         tblItems.getItems().clear();
         try {
-            ArrayList<ItemDTO> allItems = item.getAll();
+            ArrayList<ItemDTO> allItems = itemBo.getAllItems();
            for(ItemDTO dto:allItems) {
                 tblItems.getItems().add(new ItemTM(dto.getCode(),dto.getDescription(),dto.getUnitPrice(),dto.getQtyOnHand()));
             }
@@ -128,10 +131,10 @@ public class ManageItemsFormController {
         /*Delete Item*/
         String code = tblItems.getSelectionModel().getSelectedItem().getCode();
         try {
-            if (!item.exist(code)) {
+            if (!itemBo.existItem(code)) {
                 new Alert(Alert.AlertType.ERROR, "There is no such item associated with the id " + code).show();
             }
-            boolean deleted = item.delete(code);
+            boolean deleted = itemBo.deleteItem(code);
           /*  Connection connection = DBConnection.getDbConnection().getConnection();
             PreparedStatement pstm = connection.prepareStatement("DELETE FROM Item WHERE code=?");
             pstm.setString(1, code);
@@ -172,11 +175,11 @@ public class ManageItemsFormController {
 
         if (btnSave.getText().equalsIgnoreCase("save")) {
             try {
-                if (item.exist(code)) {
+                if (itemBo.existItem(code)) {
                     new Alert(Alert.AlertType.ERROR, code + " already exists").show();
                 }
                 ItemDTO dto=new ItemDTO(code, description, unitPrice, qtyOnHand);
-                boolean saved = item.save(dto);
+                boolean saved = itemBo.saveItem(dto);
                 //Save Item
                 /*Connection connection = DBConnection.getDbConnection().getConnection();
                 PreparedStatement pstm = connection.prepareStatement("INSERT INTO Item (code, description, unitPrice, qtyOnHand) VALUES (?,?,?,?)");
@@ -196,7 +199,7 @@ public class ManageItemsFormController {
         } else {
             try {
 
-                if (!item.exist(code)) {
+                if (!itemBo.existItem(code)) {
                     new Alert(Alert.AlertType.ERROR, "There is no such item associated with the id " + code).show();
                 }
                 /*Update Item*/
@@ -208,7 +211,7 @@ public class ManageItemsFormController {
                 pstm.setString(4, code);
                 pstm.executeUpdate();*/
                 ItemDTO itemDTO = new ItemDTO(code, description, unitPrice, qtyOnHand);
-                boolean updated = item.update(itemDTO);
+                boolean updated = itemBo.updateItem(itemDTO);
                 if(updated) {
                     ItemTM selectedItem = tblItems.getSelectionModel().getSelectedItem();
                     selectedItem.setDescription(description);
@@ -240,7 +243,7 @@ public class ManageItemsFormController {
             }
             */
 
-            return item.generateNewId();
+            return itemBo.generateItemId();
         } catch (SQLException e) {
             new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
         } catch (ClassNotFoundException e) {

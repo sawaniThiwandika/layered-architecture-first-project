@@ -1,5 +1,6 @@
-package com.example.layeredarchitecture.dao;
+package com.example.layeredarchitecture.dao.custom;
 
+import com.example.layeredarchitecture.dao.CrudDao;
 import com.example.layeredarchitecture.model.ItemDTO;
 
 import java.math.BigDecimal;

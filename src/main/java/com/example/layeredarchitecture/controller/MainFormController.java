@@ -33,6 +33,8 @@ public class MainFormController {
     @FXML
     private ImageView imgViewOrders;
     @FXML
+    private ImageView imgOrderDetails;
+    @FXML
     private Label lblMenu;
     @FXML
     private Label lblDescription;
@@ -85,6 +87,10 @@ public class MainFormController {
                     lblMenu.setText("Search Orders");
                     lblDescription.setText("Click if you want to search orders");
                     break;
+                case "imgOrderDetails":
+                    lblMenu.setText("view Orders");
+                    lblDescription.setText("Click if you want to see orders");
+                    break;
             }
 
             ScaleTransition scaleT = new ScaleTransition(Duration.millis(200), icon);
@@ -121,6 +127,9 @@ public class MainFormController {
                     break;
                 case "imgViewOrders":
                     root = null;
+                    break;
+                case "imgOrderDetails":
+                    root = FXMLLoader.load(this.getClass().getResource("/com/example/layeredarchitecture/customer-order-details-form.fxml"));;
                     break;
             }
 
